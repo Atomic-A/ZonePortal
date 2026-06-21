@@ -1,11 +1,25 @@
 import fs from 'fs';
 import path from 'path';
+import { sql } from '@vercel/postgres';
 
 const dataFilePath = path.join(process.cwd(), 'data.json');
 
-// Initialize with some default data if it doesn't exist
-// Initialize with some default data if it doesn't exist or is missing sections
-const initializeDB = () => {
+// Check if we should use Vercel Postgres
+const usePostgres = () => {
+  return !!process.env.POSTGRES_URL;
+};
+
+const getDefaultTemplateData = () => {
+  // If data.json exists, use it as default template data
+  if (fs.existsSync(dataFilePath)) {
+    try {
+      const fileData = fs.readFileSync(dataFilePath, 'utf8');
+      return JSON.parse(fileData);
+    } catch (e) {
+      // ignore and use fallback template
+    }
+  }
+
   const defaultNews = [
     { 
       id: Date.now(), 
@@ -69,15 +83,19 @@ const initializeDB = () => {
     { username: "admin", password: "admin123" }
   ];
 
+  return {
+    news: defaultNews,
+    requests: defaultRequests,
+    schemes: defaultSchemes,
+    polls: defaultPolls,
+    funds: defaultFunds,
+    admins: defaultAdmins
+  };
+};
+
+const initializeLocalDB = () => {
   if (!fs.existsSync(dataFilePath)) {
-    const defaultData = {
-      news: defaultNews,
-      requests: defaultRequests,
-      schemes: defaultSchemes,
-      polls: defaultPolls,
-      funds: defaultFunds,
-      admins: defaultAdmins
-    };
+    const defaultData = getDefaultTemplateData();
     fs.writeFileSync(dataFilePath, JSON.stringify(defaultData, null, 2));
   } else {
     // Merge existing data with missing defaults
@@ -85,12 +103,14 @@ const initializeDB = () => {
     let db = JSON.parse(fileData);
     let updated = false;
 
-    if (!db.news) { db.news = defaultNews; updated = true; }
-    if (!db.requests) { db.requests = defaultRequests; updated = true; }
-    if (!db.schemes) { db.schemes = defaultSchemes; updated = true; }
-    if (!db.polls) { db.polls = defaultPolls; updated = true; }
-    if (!db.funds) { db.funds = defaultFunds; updated = true; }
-    if (!db.admins) { db.admins = defaultAdmins; updated = true; }
+    const defaults = getDefaultTemplateData();
+
+    if (!db.news) { db.news = defaults.news; updated = true; }
+    if (!db.requests) { db.requests = defaults.requests; updated = true; }
+    if (!db.schemes) { db.schemes = defaults.schemes; updated = true; }
+    if (!db.polls) { db.polls = defaults.polls; updated = true; }
+    if (!db.funds) { db.funds = defaults.funds; updated = true; }
+    if (!db.admins) { db.admins = defaults.admins; updated = true; }
 
     if (updated) {
       fs.writeFileSync(dataFilePath, JSON.stringify(db, null, 2));
@@ -98,13 +118,53 @@ const initializeDB = () => {
   }
 };
 
-export const readDB = () => {
-  initializeDB();
-  const fileData = fs.readFileSync(dataFilePath, 'utf8');
-  return JSON.parse(fileData);
+export const readDB = async (): Promise<any> => {
+  if (usePostgres()) {
+    try {
+      // 1. Create table if it doesn't exist
+      await sql`CREATE TABLE IF NOT EXISTS mla_portal_data (id SERIAL PRIMARY KEY, data JSONB);`;
+      
+      // 2. Fetch the single data row
+      const { rows } = await sql`SELECT data FROM mla_portal_data LIMIT 1;`;
+      
+      if (rows.length === 0) {
+        // Table is empty, seed with initial template data
+        const defaultData = getDefaultTemplateData();
+        const jsonStr = JSON.stringify(defaultData);
+        await sql`INSERT INTO mla_portal_data (data) VALUES (${jsonStr});`;
+        return defaultData;
+      }
+      
+      return rows[0].data;
+    } catch (error) {
+      console.error('Failed to read from Vercel Postgres:', error);
+      // Fallback to local default data in memory if sql fails
+      return getDefaultTemplateData();
+    }
+  } else {
+    // Local development fallback
+    initializeLocalDB();
+    const fileData = fs.readFileSync(dataFilePath, 'utf8');
+    return JSON.parse(fileData);
+  }
 };
 
-export const writeDB = (data: any) => {
-  fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+export const writeDB = async (data: any): Promise<void> => {
+  if (usePostgres()) {
+    try {
+      const jsonStr = JSON.stringify(data);
+      // Try updating existing row
+      const result = await sql`UPDATE mla_portal_data SET data = ${jsonStr};`;
+      
+      // If no row was updated, insert it
+      if (result.rowCount === 0) {
+        await sql`INSERT INTO mla_portal_data (data) VALUES (${jsonStr});`;
+      }
+    } catch (error) {
+      console.error('Failed to write to Vercel Postgres:', error);
+    }
+  } else {
+    // Local development fallback
+    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+  }
 };
-
