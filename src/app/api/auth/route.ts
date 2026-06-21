@@ -4,7 +4,7 @@ import { readDB } from '@/lib/db';
 export async function POST(request: Request) {
   try {
     const { username, password } = await request.json();
-    const db = readDB();
+    const db = await readDB();
 
     const matchedAdmin = (db.admins || []).find(
       (a: any) => a.username === username && a.password === password

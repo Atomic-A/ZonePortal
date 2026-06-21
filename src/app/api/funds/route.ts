@@ -3,7 +3,7 @@ import { readDB, writeDB } from '@/lib/db';
 
 export async function GET() {
   try {
-    const db = readDB();
+    const db = await readDB();
     const funds = db.funds || { totalBudget: 50000000, transactions: [] };
     
     // Calculate spent dynamically based on completed/in-progress transactions
@@ -28,7 +28,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json(); // expects { purpose, amount, status, date }
-    const db = readDB();
+    const db = await readDB();
 
     if (!db.funds) db.funds = { totalBudget: 50000000, transactions: [] };
     if (!db.funds.transactions) db.funds.transactions = [];
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     };
 
     db.funds.transactions.unshift(newTrx);
-    writeDB(db);
+    await writeDB(db);
 
     return NextResponse.json(newTrx);
   } catch (error) {
@@ -54,14 +54,14 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const data = await request.json(); // expects { id, purpose, amount, status, date } OR { totalBudget }
-    const db = readDB();
+    const db = await readDB();
 
     if (!db.funds) db.funds = { totalBudget: 50000000, transactions: [] };
 
     // Update totalBudget if provided
     if (typeof data.totalBudget === 'number' || typeof data.totalBudget === 'string') {
       db.funds.totalBudget = Number(data.totalBudget);
-      writeDB(db);
+      await writeDB(db);
       return NextResponse.json({ success: true, totalBudget: db.funds.totalBudget });
     }
 
@@ -75,7 +75,7 @@ export async function PUT(request: Request) {
         status: data.status ?? db.funds.transactions[index].status,
         date: data.date ?? db.funds.transactions[index].date
       };
-      writeDB(db);
+      await writeDB(db);
       return NextResponse.json(db.funds.transactions[index]);
     }
 
@@ -88,11 +88,11 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
-    const db = readDB();
+    const db = await readDB();
     
     if (db.funds && db.funds.transactions) {
       db.funds.transactions = db.funds.transactions.filter((t: any) => t.id !== id);
-      writeDB(db);
+      await writeDB(db);
       return NextResponse.json({ success: true });
     }
 

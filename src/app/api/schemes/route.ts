@@ -3,7 +3,7 @@ import { readDB, writeDB } from '@/lib/db';
 
 export async function GET() {
   try {
-    const db = readDB();
+    const db = await readDB();
     return NextResponse.json(db.schemes || {});
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch schemes' }, { status: 500 });
@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json(); // expects { category, title, desc, eligibility, docs, link }
-    const db = readDB();
+    const db = await readDB();
     
     if (!db.schemes) db.schemes = {};
     if (!db.schemes[data.category]) db.schemes[data.category] = [];
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     };
 
     db.schemes[data.category].push(newScheme);
-    writeDB(db);
+    await writeDB(db);
 
     return NextResponse.json(newScheme);
   } catch (error) {
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const data = await request.json(); // expects { id, oldCategory, newCategory, title, desc, eligibility, docs, link }
-    const db = readDB();
+    const db = await readDB();
     
     if (!db.schemes) return NextResponse.json({ error: 'Schemes db empty' }, { status: 404 });
 
@@ -86,7 +86,7 @@ export async function PUT(request: Request) {
     if (!db.schemes[finalCategory]) db.schemes[finalCategory] = [];
     db.schemes[finalCategory].push(updatedScheme);
 
-    writeDB(db);
+    await writeDB(db);
     return NextResponse.json(updatedScheme);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update scheme' }, { status: 500 });
@@ -96,7 +96,7 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
-    const db = readDB();
+    const db = await readDB();
     
     let deleted = false;
     for (const cat in db.schemes) {
@@ -109,7 +109,7 @@ export async function DELETE(request: Request) {
     }
 
     if (deleted) {
-      writeDB(db);
+      await writeDB(db);
       return NextResponse.json({ success: true });
     }
 

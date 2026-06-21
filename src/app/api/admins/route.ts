@@ -3,7 +3,7 @@ import { readDB, writeDB } from '@/lib/db';
 
 export async function GET() {
   try {
-    const db = readDB();
+    const db = await readDB();
     // Return all admins. In a production app we would hash passwords,
     // but for local administration, we return the list.
     return NextResponse.json(db.admins || []);
@@ -15,7 +15,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const { username, password } = await request.json();
-    const db = readDB();
+    const db = await readDB();
 
     if (!username || !password) {
       return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     const newAdmin = { username, password };
     db.admins.push(newAdmin);
-    writeDB(db);
+    await writeDB(db);
 
     return NextResponse.json({ success: true, user: { username } });
   } catch (error) {
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { username } = await request.json();
-    const db = readDB();
+    const db = await readDB();
 
     if (!db.admins || db.admins.length === 0) {
       return NextResponse.json({ error: 'No admin users found' }, { status: 404 });
@@ -59,7 +59,7 @@ export async function DELETE(request: Request) {
     }
 
     db.admins = db.admins.filter((a: any) => a.username !== username);
-    writeDB(db);
+    await writeDB(db);
 
     return NextResponse.json({ success: true });
   } catch (error) {

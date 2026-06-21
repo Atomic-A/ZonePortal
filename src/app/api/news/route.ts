@@ -3,7 +3,7 @@ import { readDB, writeDB } from '@/lib/db';
 
 export async function GET() {
   try {
-    const db = readDB();
+    const db = await readDB();
     return NextResponse.json(db.news);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch news' }, { status: 500 });
@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const newPost = await request.json();
-    const db = readDB();
+    const db = await readDB();
     
     const postToSave = {
       ...newPost,
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     };
 
     db.news.unshift(postToSave); // Add to beginning
-    writeDB(db);
+    await writeDB(db);
 
     return NextResponse.json(postToSave);
   } catch (error) {
@@ -33,12 +33,12 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const updatedPost = await request.json();
-    const db = readDB();
+    const db = await readDB();
     
     const index = db.news.findIndex((p: any) => p.id === updatedPost.id);
     if (index !== -1) {
       db.news[index] = { ...db.news[index], ...updatedPost };
-      writeDB(db);
+      await writeDB(db);
       return NextResponse.json(db.news[index]);
     }
     
@@ -51,10 +51,10 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
-    const db = readDB();
+    const db = await readDB();
     
     db.news = db.news.filter((p: any) => p.id !== id);
-    writeDB(db);
+    await writeDB(db);
 
     return NextResponse.json({ success: true });
   } catch (error) {

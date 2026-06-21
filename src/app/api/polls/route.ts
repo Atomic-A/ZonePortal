@@ -3,7 +3,7 @@ import { readDB, writeDB } from '@/lib/db';
 
 export async function GET() {
   try {
-    const db = readDB();
+    const db = await readDB();
     return NextResponse.json(db.polls || {});
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch active poll' }, { status: 500 });
@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const { optionId } = await request.json();
-    const db = readDB();
+    const db = await readDB();
     
     if (!db.polls || !db.polls.options) {
       return NextResponse.json({ error: 'No active poll' }, { status: 404 });
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const index = db.polls.options.findIndex((opt: any) => opt.id === optionId);
     if (index !== -1) {
       db.polls.options[index].votes = (db.polls.options[index].votes || 0) + 1;
-      writeDB(db);
+      await writeDB(db);
       return NextResponse.json(db.polls);
     }
 
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const data = await request.json(); // expects { question, options: [{ id, text, votes }] }
-    const db = readDB();
+    const db = await readDB();
 
     const newOptions = data.options.map((opt: any, idx: number) => {
       return {
@@ -50,7 +50,7 @@ export async function PUT(request: Request) {
       options: newOptions
     };
     
-    writeDB(db);
+    await writeDB(db);
     return NextResponse.json(db.polls);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update poll' }, { status: 500 });
@@ -59,12 +59,12 @@ export async function PUT(request: Request) {
 
 export async function DELETE() {
   try {
-    const db = readDB();
+    const db = await readDB();
     db.polls = {
       question: "No active poll at the moment",
       options: []
     };
-    writeDB(db);
+    await writeDB(db);
     return NextResponse.json(db.polls);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to clear poll' }, { status: 500 });

@@ -3,7 +3,7 @@ import { readDB, writeDB } from '@/lib/db';
 
 export async function GET() {
   try {
-    const db = readDB();
+    const db = await readDB();
     return NextResponse.json(db.requests || []);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch requests' }, { status: 500 });
@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const db = readDB();
+    const db = await readDB();
     
     // Auto-generate Request ID
     const year = new Date().getFullYear();
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
     if (!db.requests) db.requests = [];
     db.requests.unshift(newRequest);
-    writeDB(db);
+    await writeDB(db);
 
     return NextResponse.json(newRequest);
   } catch (error) {
@@ -41,12 +41,12 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const data = await request.json(); // expects { id, status }
-    const db = readDB();
+    const db = await readDB();
     
     const index = db.requests.findIndex((r: any) => r.id === data.id);
     if (index !== -1) {
       db.requests[index].status = data.status;
-      writeDB(db);
+      await writeDB(db);
       return NextResponse.json(db.requests[index]);
     }
     
@@ -59,10 +59,10 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
-    const db = readDB();
+    const db = await readDB();
     
     db.requests = db.requests.filter((r: any) => r.id !== id);
-    writeDB(db);
+    await writeDB(db);
 
     return NextResponse.json({ success: true });
   } catch (error) {
