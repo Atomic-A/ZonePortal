@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#fef2f2"/>
+  <circle cx="200" cy="150" r="70" fill="#dc2626" opacity="0.8"/>
+  <path d="M 100 400 C 100 280, 300 280, 300 400" fill="#dc2626" opacity="0.8"/>
+  <text x="200" y="380" font-family="sans-serif" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">Mr. R. Ramesh Kumar</text>
+</svg>

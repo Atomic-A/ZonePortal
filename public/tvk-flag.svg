@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
+  <!-- Top Red Stripe -->
+  <rect width="600" height="133.33" fill="#B91C1C"/>
+  <!-- Middle Yellow Stripe -->
+  <rect y="133.33" width="600" height="133.33" fill="#EAB308"/>
+  <!-- Bottom Red Stripe -->
+  <rect y="266.66" width="600" height="133.34" fill="#B91C1C"/>
+  
+  <!-- Center Emblem Outline -->
+  <circle cx="300" cy="200" r="50" fill="#B91C1C" stroke="#EAB308" stroke-width="4"/>
+  
+  <!-- Vaagai Flower Approximation (Center) -->
+  <path d="M 290 190 L 300 220 L 310 190 Z" fill="#EAB308"/>
+  <path d="M 280 200 L 300 220 L 320 200 Z" fill="#EAB308"/>
+  <circle cx="300" cy="225" r="5" fill="#EAB308"/>
+  
+  <!-- Elephants Approximation (Silhouettes) -->
+  <!-- Left Elephant -->
+  <path d="M 180 200 C 180 180, 220 180, 220 200 C 220 220, 210 240, 200 240 C 190 240, 180 230, 180 230 Z" fill="#4B5563"/>
+  <path d="M 220 190 C 230 180, 240 180, 240 170" stroke="#4B5563" stroke-width="6" fill="none"/>
+  
+  <!-- Right Elephant -->
+  <path d="M 420 200 C 420 180, 380 180, 380 200 C 380 220, 390 240, 400 240 C 410 240, 420 230, 420 230 Z" fill="#4B5563"/>
+  <path d="M 380 190 C 370 180, 360 180, 360 170" stroke="#4B5563" stroke-width="6" fill="none"/>
+</svg>
