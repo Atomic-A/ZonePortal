@@ -9,7 +9,7 @@ export function proxy(request: NextRequest) {
   const isLocalhost = hostname.includes('localhost') || hostname.includes('127.0.0.1');
 
   // Check if the current request is coming from the admin subdomain
-  const isAdminDomain = hostname.startsWith('admin.');
+  const isAdminDomain = hostname.startsWith('admin.') || hostname.startsWith('admin-');
 
   // For ease of development, allow accessing /admin routes directly on plain localhost:3000
   const allowAdminAccess = isAdminDomain || (isDev && isLocalhost);
